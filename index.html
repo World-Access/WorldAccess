@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!-- <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -13,5 +13,77 @@
         <div id="world-id-container"></div>
     </div>
     <script src="app.js"></script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>World ID Mini App</title>
+  <script src="https://cdn.worldcoin.org/widget.js"></script>
+</head>
+<body>
+  <div>
+    <h1>World ID Verification</h1>
+    <p>Click the button below to verify your World ID.</p>
+    <!-- World ID Widget -->
+    <div id="world-id-container"></div>
+    <button id="verify-btn" disabled>Verify</button>
+    <p id="status" style="margin-top: 20px; color: green;"></p>
+  </div>
+
+  <script>
+    // Initialize World ID
+    const worldIdContainer = document.getElementById('world-id-container');
+    const verifyButton = document.getElementById('verify-btn');
+    const statusMessage = document.getElementById('status');
+
+    let verificationProof = null;
+
+    new window.WorldID.init({
+      action_id: "your_action_id", // Replace with your World ID action ID
+      signal: "user_signal", // Use a unique user identifier or signal
+      enable_telemetry: true,
+      container: worldIdContainer,
+      on_success: (proof) => {
+        verificationProof = proof; // Store the proof for server-side verification
+        verifyButton.disabled = false;
+        statusMessage.textContent = "Verification successful. Click Verify to proceed.";
+      },
+      on_error: (error) => {
+        statusMessage.textContent = `Error: ${error.message}`;
+        statusMessage.style.color = "red";
+      },
+    });
+
+    // Handle Verify Button Click
+    verifyButton.addEventListener('click', () => {
+      if (verificationProof) {
+        // Send the proof to your backend for verification
+        fetch('/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ proof: verificationProof }),
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.success) {
+              statusMessage.textContent = "Verification complete! 🎉";
+            } else {
+              statusMessage.textContent = "Verification failed.";
+              statusMessage.style.color = "red";
+            }
+          })
+          .catch((error) => {
+            statusMessage.textContent = `Server Error: ${error.message}`;
+            statusMessage.style.color = "red";
+          });
+      }
+    });
+  </script>
 </body>
 </html>
